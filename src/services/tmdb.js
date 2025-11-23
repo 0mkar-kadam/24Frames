@@ -13,6 +13,7 @@ export async function fetchMoviesByGenre(genreId) {
         return data.results;
     } catch (error) {
         console.error('Error fetching movies:', error);
+        console.log('API Key Status:', API_KEY === 'YOUR_TMDB_API_KEY' ? 'Placeholder' : 'Set');
         return [];
     }
 }
