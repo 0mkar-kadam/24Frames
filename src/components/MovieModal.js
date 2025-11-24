@@ -23,6 +23,7 @@ export function MovieModal(movie, reviews = []) {
   return `
     <div id="movie-modal" class="modal-overlay">
       <div class="modal-content">
+        <div class="modal-background" style="background-image: url('https://image.tmdb.org/t/p/w1280${movie.backdrop_path || movie.poster_path}')"></div>
         <button class="close-modal">&times;</button>
         
         <div class="modal-header" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0.1), #0a0a0a), url('https://image.tmdb.org/t/p/original${movie.backdrop_path || movie.poster_path}')">

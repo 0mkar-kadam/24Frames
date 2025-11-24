@@ -39,15 +39,66 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.logo {
-  font-family: var(--font-heading);
+/* Logo - Auteur Aesthetic */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.logo-container:hover {
+  opacity: 0.8;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  color: #ffffff;
+  /* No spin for the monolith, it stands tall */
+}
+
+.light-beam {
+  animation: beam-pulse 4s ease-in-out infinite;
+  transform-origin: center top;
+}
+
+@keyframes beam-pulse {
+
+  0%,
+  100% {
+    stroke-opacity: 0.3;
+    stroke-width: 0.5;
+  }
+
+  50% {
+    stroke-opacity: 1;
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 5px #e50914);
+  }
+}
+
+.logo-text {
+  display: flex;
+  align-items: center;
+  font-family: 'Outfit', sans-serif;
+  line-height: 1;
+  gap: 0.2rem;
+}
+
+.logo-number {
   font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(45deg, var(--primary-color), #ff4b4b);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 2px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -1px;
+}
+
+.logo-word {
+  font-size: 2.5rem;
+  font-weight: 300;
+  color: #ffffff;
+  letter-spacing: 0.5rem;
   text-transform: uppercase;
 }
 
@@ -332,8 +383,10 @@ body {
   cursor: pointer;
 }
 
+/* Modal Background */
 .modal-content {
   background: #1a1a1a;
+  /* Fallback */
   width: 90%;
   max-width: 1000px;
   max-height: 90vh;
@@ -343,6 +396,129 @@ body {
   box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: default;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Clip horizontal overflow but allow vertical scroll */
+}
+
+.modal-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(30px) brightness(0.2);
+  z-index: -1;
+  transform: scale(1.1);
+  /* Prevent blur edges */
+}
+
+/* ... existing styles ... */
+
+.review-header {
+  color: var(--primary-color);
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.review-text {
+  color: #ddd;
+  line-height: 1.6;
+}
+
+/* Review Form - Dark Theme */
+#review-form {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 2rem;
+}
+
+#review-form h4 {
+  font-family: var(--font-heading);
+  color: var(--gold);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.rating-input {
+  margin-bottom: 1.5rem;
+}
+
+.rating-input label {
+  display: block;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+#review-rating,
+#review-text {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+#review-rating:focus,
+#review-text:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 15px rgba(229, 9, 20, 0.1);
+}
+
+#review-rating option {
+  background: #1a1a1a;
+  color: white;
+}
+
+#review-text {
+  min-height: 120px;
+  resize: vertical;
+  margin-bottom: 1.5rem;
+}
+
+.submit-review-btn {
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  float: right;
+}
+
+.submit-review-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+  filter: brightness(1.1);
+}
+
+/* Clear float */
+#review-form::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .close-modal {

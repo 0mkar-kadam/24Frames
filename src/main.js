@@ -82,6 +82,12 @@ document.getElementById('nav-matrix').addEventListener('click', (e) => {
   switchView('matrix');
 });
 
+// Logo Click
+document.getElementById('nav-logo-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  switchView('home');
+});
+
 document.getElementById('nav-watchlist').addEventListener('click', async (e) => {
   e.preventDefault();
   switchView('home'); // Watchlist is shown in the grid area
