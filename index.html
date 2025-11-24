@@ -13,7 +13,24 @@
 </head>
 
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div id="navbar-container"></div>
+
+    <!-- Home View -->
+    <div id="home-view">
+      <div id="mood-selector-container"></div>
+      <div id="search-results-container" class="movie-grid"></div>
+    </div>
+
+    <!-- Matrix View (Hidden by default) -->
+    <div id="matrix-view" style="display: none;">
+      <div id="matrix-container-wrapper"></div>
+      <div id="randomizer-wrapper"></div>
+    </div>
+
+    <!-- Modals -->
+    <div id="movie-modal-container"></div>
+  </div>
   <script type="module" src="/src/main.js"></script>
 </body>
 

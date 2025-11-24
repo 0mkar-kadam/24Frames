@@ -14,13 +14,13 @@
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-body);
-  background-color: var(--bg-color);
+  font-family: 'Outfit', sans-serif;
+  background: url('/cinematic_background.png') no-repeat center center fixed;
+  background-size: cover;
   color: var(--text-color);
+  margin: 0;
   min-height: 100vh;
-  background-image: radial-gradient(circle at top, #1a1a1a 0%, #000000 100%);
+  overflow-x: hidden;
 }
 
 #app {
@@ -329,6 +329,7 @@ body {
   z-index: 1000;
   backdrop-filter: blur(8px);
   animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .modal-content {
@@ -341,6 +342,7 @@ body {
   position: relative;
   box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: default;
 }
 
 .close-modal {
@@ -357,7 +359,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  z-index: 2000;
   transition: all 0.3s ease;
 }
 

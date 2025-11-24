@@ -21,7 +21,7 @@ export function MovieModal(movie, reviews = []) {
     : '<p class="no-reviews">No reviews yet. Be the first!</p>';
 
   return `
-    <div class="modal-overlay">
+    <div id="movie-modal" class="modal-overlay">
       <div class="modal-content">
         <button class="close-modal">&times;</button>
         

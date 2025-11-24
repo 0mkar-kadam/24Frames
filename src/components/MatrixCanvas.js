@@ -103,4 +103,21 @@ export function initMatrixEffect() {
         movieResult.textContent = '';
         draw();
     });
+
+    // Click to Open
+    container.addEventListener('click', async () => {
+        if (hovered && movieResult.textContent) {
+            const movieName = movieResult.textContent.replace('Selected: ', '');
+            // Use the global searchMovies function exposed in main.js
+            if (window.searchMovies && window.displayMovies) {
+                // Switch to home view to show results
+                document.getElementById('nav-home').click();
+                const searchContainer = document.getElementById('search-results-container');
+                searchContainer.innerHTML = '<div class="loading">Deciphering Matrix...</div>';
+
+                const movies = await window.searchMovies(movieName);
+                window.displayMovies(movies);
+            }
+        }
+    });
 }

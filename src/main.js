@@ -9,207 +9,269 @@ import { fetchMoviesByGenre, fetchRandomMovie, fetchMovieDetails, searchMovies }
 import { getGenresForMood } from './services/moodEngine.js';
 import { analyzeMoodAndFetchMovies } from './services/aiService.js';
 import { addToWatchlist, getWatchlist } from './services/watchlistService.js';
-import { getReviews, addReview } from './services/reviewService.js';
+import { addReview, getReviews } from './services/reviewService.js';
 
-document.querySelector('#app').innerHTML = `
-  ${Navbar()}
-  <main>
-    ${MoodSelector()}
-    ${Randomizer()}
-    ${MatrixCanvas()}
-    <div id="movie-results" class="movie-grid"></div>
-  </main>
-`;
+// --- State Management ---
+const state = {
+  currentView: 'home', // 'home' or 'matrix'
+  movies: [],
+  watchlist: []
+};
 
-// Initialize effects
-initMatrixEffect();
+// --- Initialization ---
+document.querySelector('#navbar-container').innerHTML = Navbar();
+document.querySelector('#mood-selector-container').innerHTML = MoodSelector();
+document.querySelector('#matrix-container-wrapper').innerHTML = MatrixCanvas();
+document.querySelector('#randomizer-wrapper').innerHTML = Randomizer();
 
-// Event Listeners
-const resultsContainer = document.getElementById('movie-results');
+// --- DOM Elements ---
+const homeView = document.getElementById('home-view');
+const matrixView = document.getElementById('matrix-view');
+const searchResultsContainer = document.getElementById('search-results-container');
+const movieModalContainer = document.getElementById('movie-modal-container');
+const searchBar = document.getElementById('search-bar');
 
-// Randomizer Listener
-document.getElementById('randomizer-btn').addEventListener('click', async () => {
-  resultsContainer.innerHTML = '<div class="loading">Rolling the dice... 🎲</div>';
-  const movie = await fetchRandomMovie();
+// --- Navigation Logic ---
+// --- Navigation Logic ---
+function switchView(viewName, pushState = true) {
+  console.log(`switchView called: ${viewName}, pushState: ${pushState}`);
+  state.currentView = viewName;
 
-  if (movie) {
-    resultsContainer.innerHTML = MovieCard(movie);
-  } else {
-    resultsContainer.innerHTML = '<div class="error">Could not find a random movie. Try again!</div>';
+  // Close any open modals
+  movieModalContainer.innerHTML = '';
+
+  // Update UI
+  if (viewName === 'home') {
+    homeView.style.display = 'block';
+    matrixView.style.display = 'none';
+  } else if (viewName === 'matrix') {
+    homeView.style.display = 'none';
+    matrixView.style.display = 'block';
+    initMatrixEffect();
   }
-});
 
-// AI Mood Input Listener
-const moodInput = document.getElementById('mood-text-input');
-const moodSubmitBtn = document.getElementById('mood-submit-btn');
-
-async function handleAIRequest() {
-  const text = moodInput.value.trim();
-  if (!text) return;
-
-  resultsContainer.innerHTML = '<div class="loading">AI is analyzing your mood... 🤖</div>';
-
-  const movies = await analyzeMoodAndFetchMovies(text);
-
-  if (movies && movies.length > 0) {
-    resultsContainer.innerHTML = movies.map(movie => MovieCard(movie)).join('');
-  } else {
-    resultsContainer.innerHTML = '<div class="error">AI couldn\'t understand that. Try "I want to laugh" or "scary movies".</div>';
+  // Update URL History
+  if (pushState) {
+    const url = new URL(window.location);
+    url.searchParams.set('view', viewName);
+    window.history.pushState({ view: viewName }, '', url);
+    console.log(`Pushed state: ${viewName}, URL: ${url.toString()}`);
   }
 }
 
-moodSubmitBtn.addEventListener('click', handleAIRequest);
-moodInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') handleAIRequest();
-});
+// Handle Browser Back/Forward - MOVED TO closeModal section with error handling
 
-// Movie Card Click Listener (Event Delegation)
-resultsContainer.addEventListener('click', async (e) => {
-  // Handle Watchlist Button Click
-  if (e.target.classList.contains('watchlist-btn-mini')) {
-    e.stopPropagation(); // Prevent modal opening
-    const card = e.target.closest('.movie-card');
-    const movieId = card.dataset.id;
+// Initial Load
+const initialParams = new URLSearchParams(window.location.search);
+const initialView = initialParams.get('view') || 'home';
 
-    const movie = await fetchMovieDetails(movieId);
-    if (movie) {
-      if (await addToWatchlist(movie)) {
-        alert('Added to Watchlist! ❤️');
-      } else {
-        alert('Already in Watchlist!');
-      }
-    }
-    return;
-  }
+// Set initial state so we have something to go back to
+const initialUrl = new URL(window.location);
+initialUrl.searchParams.set('view', initialView);
+window.history.replaceState({ view: initialView }, '', initialUrl);
 
-  const card = e.target.closest('.movie-card');
-  if (card) {
-    const movieId = card.dataset.id;
-    // Show loading or just fetch
-    const movieDetails = await fetchMovieDetails(movieId);
-
-    if (movieDetails) {
-      const reviews = await getReviews(movieId);
-      const modalHtml = MovieModal(movieDetails, reviews);
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-      // Modal Watchlist Button Logic
-      const modalBtn = document.querySelector('.add-to-watchlist-btn');
-      if (modalBtn) {
-        modalBtn.addEventListener('click', async () => {
-          if (await addToWatchlist(movieDetails)) {
-            modalBtn.textContent = 'Added! ❤️';
-            modalBtn.disabled = true;
-          } else {
-            alert('Already in Watchlist!');
-          }
-        });
-      }
-
-      // Review Form Logic
-      const reviewForm = document.getElementById('review-form');
-      if (reviewForm) {
-        reviewForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const rating = document.getElementById('review-rating').value;
-          const text = document.getElementById('review-text').value;
-
-          await addReview(movieId, { rating, text });
-
-          // Refresh modal to show new review (simple way: remove and re-open, or just append)
-          // For simplicity, we'll just reload the page or alert and close. 
-          // Better: Re-render the reviews list.
-          alert('Review submitted! 📝');
-          document.querySelector('.close-modal').click(); // Close modal to refresh state next time
-        });
-      }
-
-    } else {
-      alert('Could not fetch movie details. Check API Key.');
-    }
-  }
-});
-
-// Navbar Listeners
-document.getElementById('nav-watchlist').addEventListener('click', async (e) => {
-  e.preventDefault();
-  const watchlist = await getWatchlist();
-
-  // Hide other sections
-  document.querySelector('.mood-selector').style.display = 'none';
-  document.querySelector('.randomizer-container').style.display = 'none';
-  document.getElementById('matrix-container').style.display = 'none';
-  document.querySelector('.mood-input-container').style.display = 'none';
-
-  if (watchlist.length === 0) {
-    resultsContainer.innerHTML = '<div class="error">Your watchlist is empty. Go add some movies! 🍿</div>';
-  } else {
-    resultsContainer.innerHTML = watchlist.map(movie => MovieCard(movie)).join('');
-  }
-});
-
-// Search Listener
-const searchInput = document.getElementById('search-bar');
-searchInput.addEventListener('keypress', async (e) => {
-  if (e.key === 'Enter') {
-    const query = searchInput.value.trim();
-    if (!query) return;
-
-    // Hide other sections
-    document.querySelector('.mood-selector').style.display = 'none';
-    document.querySelector('.randomizer-container').style.display = 'none';
-    document.getElementById('matrix-container').style.display = 'none';
-    document.querySelector('.mood-input-container').style.display = 'none';
-
-    resultsContainer.innerHTML = '<div class="loading">Searching for movies... 🔍</div>';
-
-    const movies = await searchMovies(query);
-
-    if (movies && movies.length > 0) {
-      resultsContainer.innerHTML = movies.map(movie => MovieCard(movie)).join('');
-    } else {
-      resultsContainer.innerHTML = '<div class="error">No movies found matching your search.</div>';
-    }
-  }
-});
+switchView(initialView, false);
 
 document.getElementById('nav-home').addEventListener('click', (e) => {
   e.preventDefault();
-  // Show sections
-  document.querySelector('.mood-selector').style.display = 'block';
-  document.querySelector('.randomizer-container').style.display = 'flex';
-  document.getElementById('matrix-container').style.display = 'block';
-  document.querySelector('.mood-input-container').style.display = 'flex';
-  resultsContainer.innerHTML = ''; // Clear results
+  switchView('home');
 });
 
-document.querySelectorAll('.mood-btn').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    const mood = e.currentTarget.dataset.mood;
-    console.log('Mood selected:', mood);
+document.getElementById('nav-matrix').addEventListener('click', (e) => {
+  e.preventDefault();
+  switchView('matrix');
+});
 
-    // Visual feedback
-    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-    e.currentTarget.classList.add('active');
+document.getElementById('nav-watchlist').addEventListener('click', async (e) => {
+  e.preventDefault();
+  switchView('home'); // Watchlist is shown in the grid area
+  const watchlist = await getWatchlist();
+  displayMovies(watchlist);
+});
 
-    // Clear previous results
-    resultsContainer.innerHTML = '<div class="loading">Finding the perfect movies...</div>';
+// --- Event Listeners ---
 
-    // Get genres
-    const genreIds = getGenresForMood(mood);
-    if (genreIds.length === 0) {
-      resultsContainer.innerHTML = '<div class="error">Mood not found. Try another!</div>';
-      return;
-    }
-
-    // Fetch movies (using first genre for now, or mix)
-    // We'll fetch for the first mapped genre
-    const movies = await fetchMoviesByGenre(genreIds[0]);
-
-    if (movies && movies.length > 0) {
-      resultsContainer.innerHTML = movies.map(movie => MovieCard(movie)).join('');
-    } else {
-      resultsContainer.innerHTML = '<div class="error">No movies found. Check API Key or try again.</div>';
+// 1. Search
+if (searchBar) {
+  searchBar.addEventListener('keypress', async (e) => {
+    if (e.key === 'Enter') {
+      const query = e.target.value;
+      if (query) {
+        switchView('home');
+        searchResultsContainer.innerHTML = '<div class="loading">Searching...</div>';
+        const movies = await searchMovies(query);
+        displayMovies(movies);
+      }
     }
   });
+}
+
+// 2. Mood Selection
+document.querySelectorAll('.mood-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    // UI Update
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const mood = btn.dataset.mood;
+    const genres = getGenresForMood(mood);
+
+    searchResultsContainer.innerHTML = '<div class="loading">Finding the perfect movies...</div>';
+
+    // Fetch movies for the first genre in the list
+    const movies = await fetchMoviesByGenre(genres[0]);
+    displayMovies(movies);
+  });
 });
+
+// 3. AI Mood Input
+const moodSubmitBtn = document.getElementById('mood-submit-btn');
+const moodInput = document.getElementById('mood-text-input');
+
+if (moodSubmitBtn && moodInput) {
+  moodSubmitBtn.addEventListener('click', async () => {
+    const text = moodInput.value;
+    if (!text) return;
+
+    searchResultsContainer.innerHTML = '<div class="loading">Analyzing your mood...</div>';
+    const movies = await analyzeMoodAndFetchMovies(text);
+    displayMovies(movies);
+  });
+}
+
+// 4. Randomizer (Now on Matrix Page)
+const randomizerBtn = document.getElementById('randomizer-btn');
+if (randomizerBtn) {
+  randomizerBtn.addEventListener('click', async () => {
+    const movie = await fetchRandomMovie();
+    if (movie) {
+      openModal(movie);
+    } else {
+      alert('Could not find a random movie. Try again!');
+    }
+  });
+}
+
+// --- Helper Functions ---
+
+function displayMovies(movies) {
+  searchResultsContainer.innerHTML = '';
+
+  if (!movies || movies.length === 0) {
+    searchResultsContainer.innerHTML = '<div class="error">No movies found matching your search.</div>';
+    return;
+  }
+
+  movies.forEach(movie => {
+    const cardHTML = MovieCard(movie);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = cardHTML;
+    const cardElement = tempDiv.firstElementChild;
+
+    // Add click event to open modal
+    cardElement.addEventListener('click', () => openModal(movie));
+
+    searchResultsContainer.appendChild(cardElement);
+  });
+}
+
+async function openModal(movie) {
+  // Fetch full details (including videos/cast)
+  const fullMovie = await fetchMovieDetails(movie.id);
+  const movieToDisplay = fullMovie || movie;
+
+  // Fetch reviews
+  const reviews = await getReviews(movie.id);
+
+  movieModalContainer.innerHTML = MovieModal(movieToDisplay, reviews);
+  const modal = document.getElementById('movie-modal');
+  const closeBtn = document.querySelector('.close-modal');
+  const overlay = document.querySelector('.modal-overlay');
+  const watchlistBtn = document.querySelector('.add-to-watchlist-btn');
+  const reviewForm = document.getElementById('review-form');
+
+  // Show modal - handled by appending to DOM
+  // modal.style.display = 'flex'; // Flex to center
+
+  // Update URL History for Modal
+  const url = new URL(window.location);
+  url.searchParams.set('movieId', movie.id);
+  window.history.pushState({ view: state.currentView, movieId: movie.id, modal: true }, '', url);
+
+  // Close Logic
+  const closeModal = () => {
+    console.log('closeModal called. Current state:', window.history.state);
+
+    // 1. Visually close immediately to ensure UI response
+    movieModalContainer.innerHTML = '';
+
+    // 2. Handle History
+    if (window.history.state?.modal) {
+      console.log('History has modal state, calling back()');
+      window.history.back();
+    } else {
+      console.log('No modal state in history, manual fallback');
+      switchView(state.currentView, false);
+      const url = new URL(window.location);
+      url.searchParams.delete('movieId');
+      window.history.replaceState({ view: state.currentView }, '', url);
+    }
+  };
+
+  // Handle Browser Back/Forward with Error Handling
+  window.addEventListener('popstate', (event) => {
+    try {
+      console.log('popstate event fired:', event.state);
+      const view = event.state?.view || 'home';
+      switchView(view, false);
+    } catch (error) {
+      console.error('Error in popstate:', error);
+      // Fallback to home if error
+      switchView('home', false);
+    }
+  });
+
+  // Remove old event listeners to prevent duplicates if any (though innerHTML replacement handles this)
+  // But we need to be careful not to attach multiple listeners if we re-use elements.
+  // Since we replace innerHTML of movieModalContainer, the elements are new.
+
+  closeBtn.addEventListener('click', (e) => {
+    console.log('Close button clicked');
+    e.stopPropagation(); // Prevent bubbling to overlay
+    closeModal();
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      console.log('Overlay clicked');
+      closeModal();
+    }
+  });
+
+  // Watchlist Logic
+  watchlistBtn.addEventListener('click', async () => {
+    watchlistBtn.disabled = true;
+    watchlistBtn.textContent = 'Adding...';
+    await addToWatchlist(movieToDisplay);
+    watchlistBtn.textContent = 'Added to Watchlist';
+    watchlistBtn.style.backgroundColor = '#46d369'; // Success green
+  });
+
+  // Review Logic
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rating = document.getElementById('review-rating').value;
+      const text = document.getElementById('review-text').value;
+
+      await addReview(movie.id, { rating, text });
+
+      // Refresh modal to show new review (simple reload of modal content)
+      openModal(movie);
+    });
+  }
+}
+
+// Export openModal so it can be used by MatrixCanvas
+window.openModal = openModal;
+window.searchMovies = searchMovies; // Expose for MatrixCanvas if needed
+window.displayMovies = displayMovies; // Expose for MatrixCanvas if needed
