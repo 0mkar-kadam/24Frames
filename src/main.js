@@ -18,11 +18,16 @@ const state = {
   watchlist: []
 };
 
+import { EasterEggService } from './services/easterEggs.js';
+
 // --- Initialization ---
 document.querySelector('#navbar-container').innerHTML = Navbar();
 document.querySelector('#mood-selector-container').innerHTML = MoodSelector();
 document.querySelector('#matrix-container-wrapper').innerHTML = MatrixCanvas();
 document.querySelector('#randomizer-wrapper').innerHTML = Randomizer();
+
+// Initialize Easter Eggs
+EasterEggService.init();
 
 // --- DOM Elements ---
 const homeView = document.getElementById('home-view');
@@ -31,7 +36,6 @@ const searchResultsContainer = document.getElementById('search-results-container
 const movieModalContainer = document.getElementById('movie-modal-container');
 const searchBar = document.getElementById('search-bar');
 
-// --- Navigation Logic ---
 // --- Navigation Logic ---
 function switchView(viewName, pushState = true) {
   console.log(`switchView called: ${viewName}, pushState: ${pushState}`);
@@ -104,7 +108,7 @@ if (searchBar) {
       const query = e.target.value;
       if (query) {
         switchView('home');
-        searchResultsContainer.innerHTML = '<div class="loading">Searching...</div>';
+        searchResultsContainer.innerHTML = `<div class="loading">${EasterEggService.getRandomLoadingMessage()}</div>`;
         const movies = await searchMovies(query);
         displayMovies(movies);
       }
@@ -112,9 +116,10 @@ if (searchBar) {
   });
 }
 
-// 2. Mood Selection
-document.querySelectorAll('.mood-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
+// 2. Mood Selection (Delegation for dynamic elements)
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.mood-btn');
+  if (btn) {
     // UI Update
     document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -122,12 +127,12 @@ document.querySelectorAll('.mood-btn').forEach(btn => {
     const mood = btn.dataset.mood;
     const genres = getGenresForMood(mood);
 
-    searchResultsContainer.innerHTML = '<div class="loading">Finding the perfect movies...</div>';
+    searchResultsContainer.innerHTML = `<div class="loading">${EasterEggService.getRandomLoadingMessage()}</div>`;
 
     // Fetch movies for the first genre in the list
     const movies = await fetchMoviesByGenre(genres[0]);
     displayMovies(movies);
-  });
+  }
 });
 
 // 3. AI Mood Input
@@ -139,7 +144,7 @@ if (moodSubmitBtn && moodInput) {
     const text = moodInput.value;
     if (!text) return;
 
-    searchResultsContainer.innerHTML = '<div class="loading">Analyzing your mood...</div>';
+    searchResultsContainer.innerHTML = `<div class="loading">${EasterEggService.getRandomLoadingMessage()}</div>`;
     const movies = await analyzeMoodAndFetchMovies(text);
     displayMovies(movies);
   });

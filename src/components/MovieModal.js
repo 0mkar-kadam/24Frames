@@ -71,14 +71,16 @@ export function MovieModal(movie, reviews = []) {
                 <div class="rating-input">
                   <label>Rating:</label>
                   <select id="review-rating" required>
-                    <option value="10">10 - Masterpiece</option>
-                    <option value="9">9 - Amazing</option>
-                    <option value="8">8 - Great</option>
-                    <option value="7">7 - Good</option>
-                    <option value="6">6 - Fine</option>
-                    <option value="5">5 - Average</option>
-                    <option value="4">4 - Bad</option>
-                    <option value="1">1 - Terrible</option>
+                    <option value="10">10 - Absolute Cinema</option>
+                    <option value="9">9 - Royale with Cheese</option>
+                    <option value="8">8 - Shiny and Chrome</option>
+                    <option value="7">7 - Groovy</option>
+                    <option value="6">6 - Life Finds a Way</option>
+                    <option value="5">5 - Perfectly Balanced</option>
+                    <option value="4">4 - Glitch in the Matrix</option>
+                    <option value="3">3 - It's a Trap!</option>
+                    <option value="2">2 - Not My Tempo</option>
+                    <option value="1">1 - Not The Bees!</option>
                   </select>
                 </div>
                 <textarea id="review-text" placeholder="Share your thoughts..." required></textarea>

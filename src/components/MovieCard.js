@@ -5,13 +5,10 @@ export function MovieCard(movie) {
 
   return `
     <div class="movie-card" data-id="${movie.id}">
-      <div class="card-overlay">
-        <button class="watchlist-btn-mini" data-id="${movie.id}" title="Add to Watchlist">❤️</button>
-      </div>
       <img src="${posterPath}" alt="${movie.title}" loading="lazy">
       <div class="movie-info">
-        <h3>${movie.title}</h3>
-        <span class="rating">⭐ ${movie.vote_average.toFixed(1)}</span>
+        <h3>${movie.title.toUpperCase()}</h3>
+        <span class="rating">${movie.vote_average.toFixed(1)} / 10</span>
       </div>
     </div>
   `;

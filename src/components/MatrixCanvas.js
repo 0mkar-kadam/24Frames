@@ -3,7 +3,7 @@ export function MatrixCanvas() {
     <div id="matrix-container">
       <canvas id="matrix-canvas"></canvas>
       <div class="matrix-overlay" id="matrix-overlay">
-        <h3>Hover to Decrypt a Movie</h3>
+        <h3>Hover to Decrypt // Click to Breach</h3>
         <div id="matrix-movie-result"></div>
       </div>
     </div>
@@ -18,106 +18,165 @@ export function initMatrixEffect() {
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
-    let width = canvas.width = canvas.parentElement.offsetWidth;
-    let height = canvas.height = 400;
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
 
     const movieTitles = [
         "The Matrix", "Inception", "Interstellar", "The Dark Knight",
         "Pulp Fiction", "Fight Club", "Forrest Gump", "Gladiator",
         "The Godfather", "Star Wars", "Avengers", "Titanic",
         "Jurassic Park", "Avatar", "The Lion King", "Rocky",
-        "Alien", "Terminator", "Back to the Future", "The Shining"
+        "Alien", "Terminator", "Back to the Future", "The Shining",
+        "Blade Runner", "Cyberpunk", "Tron", "Akira"
     ];
 
-    const columns = Math.floor(width / 20);
-    const drops = [];
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+    const quotes = [
+        "Wake Up", "Follow the White Rabbit", "There is no Spoon",
+        "Free Your Mind", "He is the One", "I Know Kung Fu"
+    ];
 
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+    const fontSize = 16;
+    const columns = Math.ceil(width / fontSize);
+
+    // Particle System
+    const drops = [];
     for (let i = 0; i < columns; i++) {
-        drops[i] = 1;
+        drops[i] = {
+            x: i * fontSize,
+            y: Math.random() * -1000, // Stagger start
+            speed: 1 + Math.random() * 3,
+            text: chars.charAt(Math.floor(Math.random() * chars.length)),
+            isQuote: false,
+            quoteText: ""
+        };
     }
 
+    let mouse = { x: -1000, y: -1000 };
     let animationId;
-    let hovered = false;
+    let isGlitching = false;
+
+    // Mouse Interaction
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
 
     function draw() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        // Semi-transparent black for trail effect
+        ctx.fillStyle = isGlitching ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)';
         ctx.fillRect(0, 0, width, height);
 
-        ctx.fillStyle = '#0F0';
-        ctx.font = '15px monospace';
+        ctx.font = `${fontSize}px monospace`;
 
         for (let i = 0; i < drops.length; i++) {
-            const text = chars.charAt(Math.floor(Math.random() * chars.length));
-            ctx.fillText(text, i * 20, drops[i] * 20);
+            const drop = drops[i];
 
-            if (drops[i] * 20 > height && Math.random() > 0.975) {
-                drops[i] = 0;
+            // Physics: Repulsion from mouse (Bullet Dodge)
+            const dx = drop.x - mouse.x;
+            const dy = drop.y - mouse.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const repulsionRadius = 150;
+
+            let renderX = drop.x;
+            let renderY = drop.y;
+
+            if (distance < repulsionRadius) {
+                const angle = Math.atan2(dy, dx);
+                const force = (repulsionRadius - distance) / repulsionRadius;
+                const push = force * 50; // Push strength
+                renderX += Math.cos(angle) * push;
+                renderY += Math.sin(angle) * push;
             }
-            drops[i]++;
+
+            // Text Selection
+            let text = drop.text;
+
+            // Subliminal Quotes
+            if (Math.random() > 0.999 && !drop.isQuote) {
+                drop.isQuote = true;
+                drop.quoteText = quotes[Math.floor(Math.random() * quotes.length)];
+            }
+
+            if (drop.isQuote) {
+                ctx.fillStyle = '#FFF'; // White for quotes
+                text = drop.quoteText;
+            } else {
+                ctx.fillStyle = '#0F0'; // Green for normal code
+                // Randomly change character
+                if (Math.random() > 0.95) {
+                    drop.text = chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                text = drop.text;
+            }
+
+            // Glitch Effect Color Override
+            if (isGlitching) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#FF0000' : '#FFFFFF';
+            }
+
+            ctx.fillText(text, renderX, renderY);
+
+            // Reset logic
+            if (drop.y > height && Math.random() > 0.975) {
+                drop.y = -fontSize;
+                drop.isQuote = false;
+            }
+
+            // Move drop
+            drop.y += drop.speed;
         }
 
-        if (!hovered) {
-            animationId = requestAnimationFrame(draw);
-        }
+        animationId = requestAnimationFrame(draw);
     }
 
     draw();
 
     // Resize handler
     window.addEventListener('resize', () => {
-        width = canvas.width = canvas.parentElement.offsetWidth;
-        // Reset drops
-        drops.length = 0;
-        const newCols = Math.floor(width / 20);
-        for (let i = 0; i < newCols; i++) drops[i] = 1;
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
     });
 
-    // Hover Interaction
+    // Click to Reveal Logic
     const container = document.getElementById('matrix-container');
+    container.addEventListener('click', async () => {
+        if (isGlitching) return; // Prevent double click
 
-    container.addEventListener('mouseenter', () => {
-        hovered = true;
-        cancelAnimationFrame(animationId);
-        // Pick a random movie
+        isGlitching = true;
+
+        // 1. Trigger System Failure Visuals
+        overlay.querySelector('h3').textContent = "SYSTEM FAILURE...";
+        overlay.querySelector('h3').classList.add('glitch-active');
+
+        // 2. Select Movie
         const randomMovie = movieTitles[Math.floor(Math.random() * movieTitles.length)];
 
-        // Glitch effect or freeze
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(0, 0, width, height);
+        // 3. Delay for dramatic effect
+        setTimeout(async () => {
+            cancelAnimationFrame(animationId);
 
-        ctx.fillStyle = '#00FF00';
-        ctx.font = 'bold 30px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(randomMovie.toUpperCase(), width / 2, height / 2);
+            // Clear canvas with glitch
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, width, height);
 
-        overlay.querySelector('h3').style.display = 'none';
-        movieResult.textContent = `Selected: ${randomMovie}`;
-        movieResult.style.color = '#00FF00';
-        movieResult.style.fontSize = '1.5rem';
-    });
+            // Show Result
+            overlay.querySelector('h3').style.display = 'none';
+            movieResult.textContent = randomMovie.toUpperCase();
+            movieResult.style.opacity = '1';
+            movieResult.classList.add('glitch-active');
 
-    container.addEventListener('mouseleave', () => {
-        hovered = false;
-        overlay.querySelector('h3').style.display = 'block';
-        movieResult.textContent = '';
-        draw();
-    });
+            // 4. Navigate after short delay
+            setTimeout(async () => {
+                if (window.searchMovies && window.displayMovies) {
+                    document.getElementById('nav-home').click();
+                    const searchContainer = document.getElementById('search-results-container');
+                    searchContainer.innerHTML = `<div class="loading">BREACH SUCCESSFUL.<br>ACCESSING: ${randomMovie}...</div>`;
 
-    // Click to Open
-    container.addEventListener('click', async () => {
-        if (hovered && movieResult.textContent) {
-            const movieName = movieResult.textContent.replace('Selected: ', '');
-            // Use the global searchMovies function exposed in main.js
-            if (window.searchMovies && window.displayMovies) {
-                // Switch to home view to show results
-                document.getElementById('nav-home').click();
-                const searchContainer = document.getElementById('search-results-container');
-                searchContainer.innerHTML = '<div class="loading">Deciphering Matrix...</div>';
-
-                const movies = await window.searchMovies(movieName);
-                window.displayMovies(movies);
-            }
-        }
+                    const movies = await window.searchMovies(randomMovie);
+                    window.displayMovies(movies);
+                }
+            }, 2000);
+        }, 1500);
     });
 }

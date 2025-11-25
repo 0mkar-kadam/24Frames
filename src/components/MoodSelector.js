@@ -1,29 +1,29 @@
 export function MoodSelector() {
-    const moods = [
-        { id: 'happy', label: 'Happy', emoji: '😊' },
-        { id: 'sad', label: 'Sad', emoji: '😢' },
-        { id: 'excited', label: 'Excited', emoji: '🤩' },
-        { id: 'angry', label: 'Angry', emoji: '😠' },
-        { id: 'relaxed', label: 'Relaxed', emoji: '😌' },
-        { id: 'scared', label: 'Scared', emoji: '😱' },
-        { id: 'romantic', label: 'Romantic', emoji: '🥰' },
-        { id: 'thoughtful', label: 'Thoughtful', emoji: '🤔' }
-    ];
+  const moods = [
+    { id: 'happy', label: 'EUPHORIC' },
+    { id: 'sad', label: 'MELANCHOLIC' },
+    { id: 'excited', label: 'ELECTRIC' },
+    { id: 'angry', label: 'VOLATILE' },
+    { id: 'relaxed', label: 'SERENE' },
+    { id: 'scared', label: 'TERRIFIED' },
+    { id: 'romantic', label: 'PASSIONATE' },
+    { id: 'thoughtful', label: 'INTROSPECTIVE' }
+  ];
 
-    return `
+  return `
     <div class="mood-selector">
-      <h2>How are you feeling today?</h2>
-      <div class="mood-grid">
+      <h2>Select Your State of Mind</h2>
+      <div class="mood-list">
         ${moods.map(mood => `
-          <button class="mood-btn" data-mood="${mood.id}">
-            <span class="mood-emoji">${mood.emoji}</span>
-            <span class="mood-label">${mood.label}</span>
-          </button>
+          <div class="mood-item mood-btn" data-mood="${mood.id}" data-label="${mood.label}">
+            ${mood.label}
+          </div>
         `).join('')}
       </div>
-      <div class="mood-input-container">
-        <input type="text" id="mood-text-input" placeholder="Or describe your mood...">
-        <button id="mood-submit-btn">Find Movies</button>
+      
+      <div class="mood-input-container" style="margin-top: 4rem; border-top: 1px solid #333; padding-top: 2rem;">
+        <input type="text" id="mood-text-input" placeholder="OR TYPE YOUR FEELING..." style="background: transparent; border: none; border-bottom: 2px solid #333; border-radius: 0; width: 100%; font-size: 2rem; font-family: var(--font-heading); text-transform: uppercase;">
+        <button id="mood-submit-btn" style="margin-top: 1rem; width: 100%; border-radius: 0;">ANALYZE</button>
       </div>
     </div>
   `;
