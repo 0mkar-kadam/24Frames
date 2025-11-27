@@ -21,9 +21,9 @@ export function MoodSelector() {
         `).join('')}
       </div>
       
-      <div class="mood-input-container" style="margin-top: 4rem; border-top: 1px solid #333; padding-top: 2rem;">
-        <input type="text" id="mood-text-input" placeholder="OR TYPE YOUR FEELING..." style="background: transparent; border: none; border-bottom: 2px solid #333; border-radius: 0; width: 100%; font-size: 2rem; font-family: var(--font-heading); text-transform: uppercase;">
-        <button id="mood-submit-btn" style="margin-top: 1rem; width: 100%; border-radius: 0;">ANALYZE</button>
+      <div class="mood-input-container">
+        <input type="text" id="mood-text-input" placeholder="How do you feel?">
+        <button id="mood-submit-btn">Match Vibe</button>
       </div>
     </div>
   `;

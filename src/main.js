@@ -1,6 +1,7 @@
 import './style.css';
 import { Navbar } from './components/Navbar.js';
 import { MoodSelector } from './components/MoodSelector.js';
+import { MoodBackground } from './components/MoodBackground.js';
 import { MatrixCanvas, initMatrixEffect } from './components/MatrixCanvas.js';
 import { Randomizer } from './components/Randomizer.js';
 import { MovieCard } from './components/MovieCard.js';
@@ -26,6 +27,9 @@ document.querySelector('#mood-selector-container').innerHTML = MoodSelector();
 document.querySelector('#matrix-container-wrapper').innerHTML = MatrixCanvas();
 document.querySelector('#randomizer-wrapper').innerHTML = Randomizer();
 
+// Initialize Mood Background
+const moodBackground = new MoodBackground('mood-background-container');
+
 // Initialize Easter Eggs
 EasterEggService.init();
 
@@ -48,9 +52,13 @@ function switchView(viewName, pushState = true) {
   if (viewName === 'home') {
     homeView.style.display = 'block';
     matrixView.style.display = 'none';
+    // Ensure background is visible on home
+    document.getElementById('mood-background-container').style.display = 'block';
   } else if (viewName === 'matrix') {
     homeView.style.display = 'none';
     matrixView.style.display = 'block';
+    // Hide mood background on matrix view to avoid conflict/performance issues
+    document.getElementById('mood-background-container').style.display = 'none';
     initMatrixEffect();
   }
 
@@ -116,23 +124,71 @@ if (searchBar) {
   });
 }
 
-// 2. Mood Selection (Delegation for dynamic elements)
-document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('.mood-btn');
-  if (btn) {
-    // UI Update
-    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+// 2. Mood Selection
+const moodBtns = document.querySelectorAll('.mood-btn');
+console.log(`Found ${moodBtns.length} mood buttons.`);
 
-    const mood = btn.dataset.mood;
-    const genres = getGenresForMood(mood);
+// Accordion Logic
+const moodHeader = document.querySelector('.mood-selector h2');
+const moodList = document.querySelector('.mood-list');
 
-    searchResultsContainer.innerHTML = `<div class="loading">${EasterEggService.getRandomLoadingMessage()}</div>`;
+if (moodHeader && moodList) {
+  moodHeader.addEventListener('click', () => {
+    moodList.classList.toggle('visible');
+    moodHeader.classList.toggle('active');
+  });
+}
 
-    // Fetch movies for the first genre in the list
-    const movies = await fetchMoviesByGenre(genres[0]);
-    displayMovies(movies);
-  }
+moodBtns.forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try {
+      console.log('Mood button clicked:', btn.dataset.mood);
+
+      // UI Update
+      moodBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // UX Improvement: Auto-collapse and scroll
+      if (moodList && moodHeader) {
+        moodList.classList.remove('visible');
+        moodHeader.classList.remove('active');
+
+        // UI Polish: Update Header Text
+        // Use data-label if available, otherwise textContent
+        const moodLabel = btn.dataset.label || btn.textContent.trim();
+        moodHeader.textContent = moodLabel;
+
+        // Smooth scroll to results after a short delay to allow collapse animation
+        setTimeout(() => {
+          searchResultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
+
+      const mood = btn.dataset.mood;
+
+      // Update Background
+      moodBackground.setMood(mood);
+      const genres = getGenresForMood(mood);
+      console.log('Mapped genres:', genres);
+
+      if (!genres || genres.length === 0) {
+        console.error('No genres found for mood:', mood);
+        alert('Error: Could not determine genre for this mood.');
+        return;
+      }
+
+      searchResultsContainer.innerHTML = `<div class="loading">${EasterEggService.getRandomLoadingMessage()}</div>`;
+
+      // Fetch movies for the first genre in the list
+      const movies = await fetchMoviesByGenre(genres[0]);
+      console.log('Fetched movies:', movies);
+
+      displayMovies(movies);
+    } catch (error) {
+      console.error('Error in mood selection:', error);
+      searchResultsContainer.innerHTML = '<div class="error">Something went wrong. Please try again.</div>';
+    }
+  });
 });
 
 // 3. AI Mood Input
@@ -145,8 +201,18 @@ if (moodSubmitBtn && moodInput) {
     if (!text) return;
 
     searchResultsContainer.innerHTML = `<div class="loading">${EasterEggService.getRandomLoadingMessage()}</div>`;
-    const movies = await analyzeMoodAndFetchMovies(text);
-    displayMovies(movies);
+    const result = await analyzeMoodAndFetchMovies(text);
+
+    // Handle new return format { movies, mood }
+    if (result.movies) {
+      displayMovies(result.movies);
+      if (result.mood) {
+        moodBackground.setMood(result.mood);
+      }
+    } else {
+      // Fallback for old format if any
+      displayMovies(result);
+    }
   });
 }
 

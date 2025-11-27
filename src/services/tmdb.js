@@ -1,14 +1,14 @@
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY || 'YOUR_TMDB_API_KEY';
 const BASE_URL = 'https://api.themoviedb.org/3';
 
-export async function fetchMoviesByGenre(genreId) {
+export async function fetchMoviesByGenre(genreId, page = 1) {
     // Mock response for now if no key
     if (API_KEY === 'YOUR_TMDB_API_KEY') {
         console.warn('No API Key provided. Returning mock data.');
         return [];
     }
     try {
-        const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc`);
+        const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&page=${page}`);
         const data = await response.json();
         return data.results;
     } catch (error) {
