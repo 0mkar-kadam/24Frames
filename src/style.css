@@ -41,6 +41,19 @@ body::after {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
+  padding-top: env(safe-area-inset-top, 2rem);
+  padding-bottom: env(safe-area-inset-bottom, 2rem);
+  padding-left: max(2rem, env(safe-area-inset-left));
+  padding-right: max(2rem, env(safe-area-inset-right));
+}
+
+/* iOS Touch Optimizations */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, .mood-item, .movie-card {
+  touch-action: manipulation;
 }
 
 /* Navbar */
