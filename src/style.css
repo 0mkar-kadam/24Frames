@@ -52,7 +52,10 @@ body::after {
   -webkit-tap-highlight-color: transparent;
 }
 
-button, a, .mood-item, .movie-card {
+button,
+a,
+.mood-item,
+.movie-card {
   touch-action: manipulation;
 }
 
@@ -864,6 +867,55 @@ button, a, .mood-item, .movie-card {
   transform: translateY(-2px);
 }
 
+
+
+/* Watch Providers */
+.providers-section {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.providers-section h3 {
+  font-family: var(--font-heading);
+  color: var(--gold);
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.provider-list {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.provider-item {
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  cursor: help;
+}
+
+.provider-item:hover {
+  transform: scale(1.1);
+}
+
+.provider-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.provider-attribution {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 1rem;
+  font-style: italic;
+}
+
 /* Reviews */
 .reviews-section {
   margin-top: 3rem;
@@ -890,15 +942,27 @@ button, a, .mood-item, .movie-card {
   font-weight: 600;
 }
 
+/* Lock body scroll when modal is open */
+.no-scroll {
+  overflow: hidden;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   #app {
     padding: 1rem;
+    padding-top: env(safe-area-inset-top, 1rem);
   }
 
   .navbar {
     flex-direction: column;
     gap: 1.5rem;
+    align-items: center;
+    /* Center align navbar items */
+  }
+
+  .logo-container {
+    justify-content: center;
   }
 
   .logo {
@@ -908,18 +972,37 @@ button, a, .mood-item, .movie-card {
   .nav-links {
     flex-direction: column;
     width: 100%;
+    align-items: center;
+    /* Center align links */
+    gap: 1rem;
   }
 
   #search-bar {
     width: 100%;
+    text-align: center;
   }
 
   #search-bar:focus {
     width: 100%;
   }
 
+  /* Fix Mood Text Overflow */
+  .mood-item {
+    font-size: 2.5rem;
+    /* Reduced from 5rem */
+    -webkit-text-stroke: 0.5px rgba(255, 255, 255, 0.5);
+  }
+
+  /* Fix Modal on Mobile */
+  .modal-content {
+    width: 95%;
+    max-height: 80vh;
+    /* Ensure it fits within viewport */
+    margin-top: 2rem;
+  }
+
   .modal-header {
-    height: 300px;
+    height: 250px;
   }
 
   .modal-title-content {
@@ -936,6 +1019,7 @@ button, a, .mood-item, .movie-card {
 
   .modal-actions {
     flex-direction: column;
+    gap: 1rem;
   }
 
   .add-to-watchlist-btn,
@@ -947,6 +1031,7 @@ button, a, .mood-item, .movie-card {
 
   #mood-text-input {
     width: 100%;
+    font-size: 1.5rem;
   }
 }
 
@@ -958,4 +1043,223 @@ button, a, .mood-item, .movie-card {
   to {
     opacity: 1;
   }
+}
+
+/* --- Auth Component (Interrogation Room) --- */
+.auth-container {
+  position: relative;
+  min-height: 80vh;
+  /* Occupy most of the screen */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Spotlight Effect */
+.spotlight {
+  position: absolute;
+  top: -50%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: flicker 4s infinite alternate;
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.9;
+  }
+}
+
+.auth-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(10, 10, 10, 0.95);
+  padding: 3rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  transition: border-color 0.3s ease;
+}
+
+.auth-title {
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  color: var(--text-color);
+  letter-spacing: 4px;
+  margin-bottom: 2.5rem;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--primary-color);
+  padding-bottom: 1rem;
+}
+
+.input-group {
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.input-group label {
+  display: block;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+}
+
+.input-group input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #444;
+  padding: 0.5rem 0;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  /* Fix width overflow */
+}
+
+.input-group input:focus {
+  outline: none;
+  border-bottom-color: var(--primary-color);
+}
+
+/* "Why so serious?" Tooltip */
+.tooltip {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  background: #720e9e;
+  /* Joker Purple */
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  opacity: 0;
+  transform: translateY(0) scale(0.8);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background: #720e9e;
+  transform: rotate(45deg);
+}
+
+.auth-btn {
+  width: 100%;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 1rem;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.auth-btn:hover {
+  background: var(--secondary-color);
+  transform: scale(1.02);
+}
+
+.auth-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-switch {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.auth-switch a {
+  color: var(--gold);
+  text-decoration: none;
+  margin-left: 0.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+.auth-feedback {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  min-height: 1.2rem;
+}
+
+.auth-feedback.error {
+  color: var(--primary-color);
+  text-shadow: 0 0 10px rgba(229, 9, 20, 0.5);
+}
+
+.auth-feedback.success {
+  color: var(--accent-color);
+  text-shadow: 0 0 10px rgba(70, 211, 105, 0.5);
+}
+
+/* Shake Animation for Error */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+  border-color: var(--primary-color);
 }

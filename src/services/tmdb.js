@@ -66,3 +66,16 @@ export async function fetchMovieDetails(movieId) {
         return null;
     }
 }
+
+export async function fetchWatchProviders(movieId) {
+    if (API_KEY === 'YOUR_TMDB_API_KEY') return null;
+
+    try {
+        const response = await fetch(`${BASE_URL}/movie/${movieId}/watch/providers?api_key=${API_KEY}`);
+        const data = await response.json();
+        return data.results;
+    } catch (error) {
+        console.error('Error fetching watch providers:', error);
+        return null;
+    }
+}

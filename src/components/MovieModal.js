@@ -1,4 +1,4 @@
-export function MovieModal(movie, reviews = []) {
+export function MovieModal(movie, reviews = [], providers = null) {
   const posterPath = movie.poster_path
     ? `https://image.tmdb.org/t/p/w780${movie.poster_path}`
     : 'https://via.placeholder.com/780x1170?text=No+Poster';
@@ -7,6 +7,31 @@ export function MovieModal(movie, reviews = []) {
   const director = movie.credits?.crew.find(c => c.job === 'Director')?.name || 'Unknown';
   const cast = movie.credits?.cast.slice(0, 5).map(c => c.name).join(', ') || 'Unknown';
   const trailer = movie.videos?.results.find(v => v.type === 'Trailer')?.key;
+
+  // Helper to render providers
+  const renderProviders = (providers) => {
+    if (!providers) return '';
+
+    // Prioritize US or IN, fallback to first available
+    const countryCode = 'US'; // Default to US for now
+    const localProviders = providers[countryCode] || providers['IN'];
+
+    if (!localProviders || !localProviders.flatrate) return '';
+
+    return `
+      <div class="providers-section">
+        <h3>Stream It On</h3>
+        <div class="provider-list">
+          ${localProviders.flatrate.map(p => `
+            <div class="provider-item" title="${p.provider_name}">
+              <img src="https://image.tmdb.org/t/p/original${p.logo_path}" alt="${p.provider_name}">
+            </div>
+          `).join('')}
+        </div>
+        <p class="provider-attribution">Data via JustWatch</p>
+      </div>
+    `;
+  };
 
   const reviewsHtml = reviews.length > 0
     ? reviews.map(r => `
@@ -59,6 +84,8 @@ export function MovieModal(movie, reviews = []) {
                 <iframe src="https://www.youtube.com/embed/${trailer}" frameborder="0" allowfullscreen></iframe>
               </div>
             ` : ''}
+
+            ${renderProviders(providers)}
 
             <div class="reviews-section">
               <h3>User Reviews</h3>

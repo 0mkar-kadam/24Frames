@@ -22,7 +22,7 @@ export function MoodSelector() {
       </div>
       
       <div class="mood-input-container">
-        <input type="text" id="mood-text-input" placeholder="How do you feel?">
+        <input type="text" id="mood-text-input" placeholder="INITIATE MOOD SCAN...">
         <button id="mood-submit-btn">Match Vibe</button>
       </div>
     </div>

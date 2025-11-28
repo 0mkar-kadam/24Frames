@@ -17,19 +17,24 @@
 
 <body>
   <div id="app">
-    <div id="mood-background-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;"></div>
+    <div id="mood-background-container"
+      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;"></div>
     <div id="navbar-container"></div>
 
     <!-- Home View -->
     <div id="home-view">
       <div id="mood-selector-container"></div>
+      <div id="randomizer-wrapper"></div>
       <div id="search-results-container" class="movie-grid"></div>
     </div>
 
     <!-- Matrix View (Hidden by default) -->
     <div id="matrix-view" style="display: none;">
       <div id="matrix-container-wrapper"></div>
-      <div id="randomizer-wrapper"></div>
+    </div>
+
+    <div id="auth-view" style="display: none;">
+      <div id="auth-container-wrapper"></div>
     </div>
 
     <!-- Modals -->

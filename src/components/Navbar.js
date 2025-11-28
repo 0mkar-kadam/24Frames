@@ -20,7 +20,8 @@ export function Navbar() {
       <div class="nav-links">
         <a href="#" id="nav-home">Home</a>
         <a href="#" id="nav-matrix">Matrix</a>
-        <a href="#" id="nav-watchlist">Watchlist</a>
+        <a href="#" id="nav-watchlist">My List</a>
+        <a href="#" id="nav-auth" class="auth-link">Login</a>
         <input type="text" placeholder="Search movies..." id="search-bar">
       </div>
     </nav>

@@ -6,11 +6,13 @@ import { MatrixCanvas, initMatrixEffect } from './components/MatrixCanvas.js';
 import { Randomizer } from './components/Randomizer.js';
 import { MovieCard } from './components/MovieCard.js';
 import { MovieModal } from './components/MovieModal.js';
-import { fetchMoviesByGenre, fetchRandomMovie, fetchMovieDetails, searchMovies } from './services/tmdb.js';
+import { fetchMoviesByGenre, fetchRandomMovie, fetchMovieDetails, searchMovies, fetchWatchProviders } from './services/tmdb.js';
 import { getGenresForMood } from './services/moodEngine.js';
 import { analyzeMoodAndFetchMovies } from './services/aiService.js';
 import { addToWatchlist, getWatchlist } from './services/watchlistService.js';
 import { addReview, getReviews } from './services/reviewService.js';
+import { Auth, initAuthLogic } from './components/Auth.js';
+import { authService } from './services/authService.js';
 
 // --- State Management ---
 const state = {
@@ -26,6 +28,7 @@ document.querySelector('#navbar-container').innerHTML = Navbar();
 document.querySelector('#mood-selector-container').innerHTML = MoodSelector();
 document.querySelector('#matrix-container-wrapper').innerHTML = MatrixCanvas();
 document.querySelector('#randomizer-wrapper').innerHTML = Randomizer();
+document.querySelector('#auth-container-wrapper').innerHTML = Auth();
 
 // Initialize Mood Background
 const moodBackground = new MoodBackground('mood-background-container');
@@ -36,6 +39,7 @@ EasterEggService.init();
 // --- DOM Elements ---
 const homeView = document.getElementById('home-view');
 const matrixView = document.getElementById('matrix-view');
+const authView = document.getElementById('auth-view');
 const searchResultsContainer = document.getElementById('search-results-container');
 const movieModalContainer = document.getElementById('movie-modal-container');
 const searchBar = document.getElementById('search-bar');
@@ -52,14 +56,26 @@ function switchView(viewName, pushState = true) {
   if (viewName === 'home') {
     homeView.style.display = 'block';
     matrixView.style.display = 'none';
+    authView.style.display = 'none';
     // Ensure background is visible on home
     document.getElementById('mood-background-container').style.display = 'block';
   } else if (viewName === 'matrix') {
     homeView.style.display = 'none';
     matrixView.style.display = 'block';
+    authView.style.display = 'none';
     // Hide mood background on matrix view to avoid conflict/performance issues
     document.getElementById('mood-background-container').style.display = 'none';
     initMatrixEffect();
+  } else if (viewName === 'auth') {
+    homeView.style.display = 'none';
+    matrixView.style.display = 'none';
+    authView.style.display = 'block';
+    // Hide mood background for auth view
+    document.getElementById('mood-background-container').style.display = 'none';
+    initAuthLogic(() => {
+      updateAuthUI();
+      switchView('home');
+    });
   }
 
   // Update URL History
@@ -102,10 +118,38 @@ document.getElementById('nav-logo-link').addEventListener('click', (e) => {
 
 document.getElementById('nav-watchlist').addEventListener('click', async (e) => {
   e.preventDefault();
+  if (!authService.isAuthenticated()) {
+    alert('ACCESS DENIED: Please identify yourself first.');
+    switchView('auth');
+    return;
+  }
   switchView('home'); // Watchlist is shown in the grid area
   const watchlist = await getWatchlist();
   displayMovies(watchlist);
 });
+
+document.getElementById('nav-auth').addEventListener('click', (e) => {
+  e.preventDefault();
+  if (authService.isAuthenticated()) {
+    // Logout Logic
+    authService.logout();
+  } else {
+    switchView('auth');
+  }
+});
+
+function updateAuthUI() {
+  const navAuth = document.getElementById('nav-auth');
+  const user = authService.getCurrentUser();
+  if (user) {
+    navAuth.textContent = `AGENT ${user.username}`;
+  } else {
+    navAuth.textContent = 'LOGIN';
+  }
+}
+
+// Initial Auth Check
+updateAuthUI();
 
 // --- Event Listeners ---
 
@@ -260,7 +304,10 @@ async function openModal(movie) {
   // Fetch reviews
   const reviews = await getReviews(movie.id);
 
-  movieModalContainer.innerHTML = MovieModal(movieToDisplay, reviews);
+  // Fetch Watch Providers
+  const providers = await fetchWatchProviders(movie.id);
+
+  movieModalContainer.innerHTML = MovieModal(movieToDisplay, reviews, providers);
   const modal = document.getElementById('movie-modal');
   const closeBtn = document.querySelector('.close-modal');
   const overlay = document.querySelector('.modal-overlay');
@@ -275,9 +322,15 @@ async function openModal(movie) {
   url.searchParams.set('movieId', movie.id);
   window.history.pushState({ view: state.currentView, movieId: movie.id, modal: true }, '', url);
 
+  // Lock Body Scroll
+  document.body.classList.add('no-scroll');
+
   // Close Logic
   const closeModal = () => {
     console.log('closeModal called. Current state:', window.history.state);
+
+    // Unlock Body Scroll
+    document.body.classList.remove('no-scroll');
 
     // 1. Visually close immediately to ensure UI response
     movieModalContainer.innerHTML = '';
